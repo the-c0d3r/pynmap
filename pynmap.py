@@ -29,8 +29,11 @@ class IP():
 			t = threading.Thread(target=self.scan,args=(i,))
 			threads.append(t)
 			t.start()
-		endtime = time.time()
-		print "Scan done in %d Seconds" % (endtime - starttime)
+		while t.isAlive():
+			time.sleep(0.05)
+		else:
+			endtime = time.time()
+			print "Scan done in %d Seconds" % (endtime - starttime)
 
 	def scan(self,ip):
 		try:
