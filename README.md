@@ -8,4 +8,6 @@ Nmap Scanner uses 27 seconds to pingsweep from 192.168.0.1-255. But this script,
 Requirement
 ===========
 1. Nmap module
+
+
 This can be installed with pip, but the module file is already here, so there is no need to pip install it again.
