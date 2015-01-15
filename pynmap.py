@@ -29,7 +29,7 @@ class IP():
 			t = threading.Thread(target=self.scan,args=(i,))
 			threads.append(t)
 			t.start()
-		while t.isAlive():
+		while t.isAlive(): # Check if there is alive threads, if the threads are still running
 			time.sleep(0.05)
 		else:
 			endtime = time.time()
