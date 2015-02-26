@@ -21,16 +21,17 @@ class ip():
 		elif not option.target:
 			print("\n[!] --target argument is not supplied, default value (localhost) is taken\n")
 			self.ipaddr = '127.0.0.1'
+
 		if option.portrange:
-			self.highrange = int(option.portrange.split('-')[0])
-			self.lowrange = int(option.portrange.split('-')[1])
-			self.portrange = [i for i in range((self.lowrange-1),self.highrange)]
-			
+			self.highrange = int(option.portrange.split('-')[1])
+			self.lowrange = int(option.portrange.split('-')[0])
+			self.portrange = [i for i in range(self.lowrange,(self.highrange+1))]
+
 		elif not option.portrange:
 			print("\n[!] --portrange argument is not supplied, default value (20-1024) is taken\n")
 			self.highrange = 1024
 			self.lowrange = 20
-			self.portrange = [i for i in range((self.lowrange-1),self.highrange)]
+			self.portrange = [i for i in range(self.lowrange,self.highrange)]
 
 		
 
