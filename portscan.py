@@ -1,6 +1,14 @@
 import threading
 import socket
 from optparse import OptionParser
+import nmap
+
+banner = r"""
+ ____   __   ____  ____        ____   ___   __   __ _ 
+(  _ \ /  \ (  _ \(_  _)      / ___) / __) / _\ (  ( \
+ ) __/(  O ) )   /  )(        \___ \( (__ /    \/    /
+(__)   \__/ (__\_) (__)       (____/ \___)\_/\_/\_)__)
+"""
 
 class ip():
 
@@ -10,6 +18,7 @@ class ip():
 		self.multithread(self.ipaddr,self.portrange)
 		
 	def initialize_variable(self):
+		print banner
 		# This function is for initializing the necessary command arguments and automate default values when one is empty
 		# For target argument, the default value is 'Localhost' ('127.0.0.1')
 		# As for port range, I think it's just necessary to scan from port 20 to 1024
@@ -47,13 +56,39 @@ class ip():
 		else:
 			pass
 
+	def online(self,ip):
+		""" Check if target is online using nmap -sP probe """
+		# -sP probe could be blocked. Check for common ports. 
+		# there could be solution with socket module. 
+		try:
+			nm = nmap.PortScanner()
+			nm.scan(hosts=ip, arguments='-sP')
+			result = nm[ip].state()
+		except KeyError:
+			pass
+		else:
+			if result == 'up':
+				return True
+			else:
+				return False
+
 	def multithread(self,ipaddr,ports):
 		# Handles port scanning operation with multi-threading
-		threads = []
-		for i in ports:
-			t = threading.Thread(target=self.scan,args=(ipaddr,i,))
-			threads.append(t)
-			t.start()
+		try:
+			# Check if the target is online or offline first.
+			if self.online(ipaddr):
+
+				threads = []
+				for i in ports:
+					t = threading.Thread(target=self.scan,args=(ipaddr,i,))
+					threads.append(t)
+					t.start()
+
+			elif not self.online(ipaddr):
+				print("[!] Target IP is offline, or blocking nmap -sP probe")
+
+		except KeyboardInterrupt:
+			print("[~] Process stopped as TERMINATE Signal received")
 
 	def bannergrab(self,ipaddr,port):
 		s = socket.socket()
