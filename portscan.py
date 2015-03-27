@@ -3,12 +3,24 @@ import socket
 from optparse import OptionParser
 import nmap
 
-banner = r"""
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ENDC = '\033[0m' # Add this color for reseting back the color.
+
+banner = r"""{}{}
  ____   __   ____  ____        ____   ___   __   __ _ 
 (  _ \ /  \ (  _ \(_  _)      / ___) / __) / _\ (  ( \
  ) __/(  O ) )   /  )(        \___ \( (__ /    \/    /
 (__)   \__/ (__\_) (__)       (____/ \___)\_/\_/\_)__)
-"""
+================================{}Written by Anubis{}{}=====
+""".format(bcolors.OKGREEN,bcolors.BOLD,bcolors.WARNING,bcolors.OKBLUE,bcolors.ENDC)
+
 
 class ip():
 
@@ -28,7 +40,7 @@ class ip():
 		if option.target:
 			self.ipaddr = option.target
 		elif not option.target:
-			print("\n[!] --target argument is not supplied, default value (localhost) is taken\n")
+			print("\n[!] --target argument is not supplied, default value (localhost) is taken")
 			self.ipaddr = '127.0.0.1'
 
 		if option.portrange:
@@ -37,7 +49,7 @@ class ip():
 			self.portrange = [i for i in range(self.lowrange,(self.highrange+1))]
 
 		elif not option.portrange:
-			print("\n[!] --portrange argument is not supplied, default value (20-1024) is taken\n")
+			print("[!] --portrange argument is not supplied, default value (20-1024) is taken\n")
 			self.highrange = 1024
 			self.lowrange = 20
 			self.portrange = [i for i in range(self.lowrange,self.highrange)]
@@ -52,7 +64,7 @@ class ip():
 		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		status = s.connect_ex((ipaddr,port))
 		if (status == 0):
-			print "[+] =[%s]= Port Open" % port
+			print("[+] =[\033[91m%s\033[0m]= Port Open"  % port)
 		else:
 			pass
 
@@ -77,6 +89,7 @@ class ip():
 		try:
 			# Check if the target is online or offline first.
 			if self.online(ipaddr):
+				print("[~] Target : "+bcolors.HEADER+"%s"%ipaddr+bcolors.ENDC)
 
 				threads = []
 				for i in ports:
