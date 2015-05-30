@@ -10,6 +10,24 @@ import struct
 import socket
 import time
 
+global keeptime
+keeptime = False
+
+
+class bcolors:
+	# This module is just for beautifying output
+	# bcolors.ENDC should be followed after using each
+	# of the variables to revert back to original color
+
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 class IP():
 
 	def __init__(self):
@@ -23,17 +41,21 @@ class IP():
 		self.multithread(self.iptoscan)
 
 	def multithread(self,ip):
-		starttime = time.time()
+		if keeptime: 
+			starttime = time.time()
 		threads = []
 		for i in ip:
 			t = threading.Thread(target=self.scan,args=(i,))
 			threads.append(t)
 			t.start()
-		while t.isAlive():
-			time.sleep(0.05)
-		else:
-			endtime = time.time()
-			print "Scan done in %d Seconds" % (endtime - starttime)
+		
+		if keeptime:
+			while t.isAlive():
+				time.sleep(0.005)
+			else:
+				if keeptime:
+					endtime = time.time()
+					print "[+] Scan done in %d Seconds" % (endtime - starttime)
 
 	def scan(self,ip):
 		try:
@@ -44,11 +66,17 @@ class IP():
 			pass
 		else:
 			if result == 'up':
-				print "%s is alive" % ip
+				
+				hostname = (nm[ip].hostname() if nm[ip].hostname() else 'unknown')
+
+				print str("[+] "+bcolors.OKBLUE+"%s"+bcolors.ENDC+" : "+ bcolors.OKGREEN + \
+					"%s"+ bcolors.ENDC) % (ip, hostname)#, nm[ip].vendor()) "%s" + bcolors.ENDC
 
 	def getlocalip(self):
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		ifname = 'wlan0'
+
+		if 'ifname' not in vars(): # Check if the variable ifname is already defined
+			ifname = 'wlan0'
 		return socket.inet_ntoa(fcntl.ioctl(s.fileno(),0x8915,struct.pack('256s',ifname[:15]))[20:24])
 
 
@@ -69,4 +97,18 @@ def main():
 	app = IP()
 
 if __name__ == '__main__':
-	main()
+	from sys import platform
+	if 'linux' not in platform:
+		print "[!] Sorry, Only " + bcolors.OKGREEN + " Linux operation system" + bcolors.ENDC +" is supported"
+	else:
+		main()
+
+
+'''
+to do
+=====
+check for root permission
+and if not root
+ask to execute itself with sudo
+
+os.system('sudo python pingsweep.py')'''
