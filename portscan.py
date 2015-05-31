@@ -3,6 +3,7 @@ import socket
 from optparse import OptionParser
 import nmap
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -38,7 +39,11 @@ class ip():
         # Generate a list and assign it to self.portrange
 
         if option.target:
-            self.ipaddr = option.target
+            if str(option.target).isdigit():
+                self.ipaddr = option.target
+            elif option.target[0].isalpha():
+                self.ipaddr = self.resolve(option.target)
+
         elif not option.target:
             print("\n[!] --target argument is not supplied, default value (localhost) is taken")
             self.ipaddr = '127.0.0.1'
@@ -54,7 +59,19 @@ class ip():
             self.lowrange = 20
             self.portrange = [i for i in range(self.lowrange,self.highrange)]
 
-        
+    def resolve(self, host):
+        # Get website and translate it to IP address
+        # Using very low level socket module
+        print("[+] Target argument received website address")
+        print("[+] Resolving website address to ip address")
+        try:
+            ip = socket.gethostbyname(host)
+        except socket.gaierror:
+            print(bcolors.WARNING+"[!] Error resolving website to ip, please get ip address manually"+bcolors.ENDC)
+            exit()
+        else:
+            print((bcolors.OKBLUE+"[+] %s = %s"+bcolors.ENDC) % (host, ip))
+            return ip
 
     def scan(self,ipaddr,port):
         # Accepts ipaddress parameter, and port to scan is accepted as port(type=int)
@@ -116,10 +133,10 @@ def parseArgs():
     parser = OptionParser()
 
     parser.add_option("-t","--target",dest="target",
-    help="IP Address to scan within quote",metavar='"127.0.0.1"')
+    help="IP Address to scan",metavar="127.0.0.1")
     
     parser.add_option("-p","--port range",dest="portrange",
-    help="Port Range to scan separated with -",metavar="5-300")
+    help="Port Range to scan separated with -",metavar="5-300 or 80")
 
     return parser
 
