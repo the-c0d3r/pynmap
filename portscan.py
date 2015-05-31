@@ -2,7 +2,7 @@ import threading
 import socket
 from optparse import OptionParser
 import nmap
-
+import time
 
 class bcolors:
     HEADER = '\033[95m'
@@ -124,8 +124,12 @@ class ip():
     def bannergrab(self,ipaddr,port):
         s = socket.socket()
         s.connect_ex((ipaddr,port))
-        s.send('hello')
+        s.send('GET HTTP/1.1 \r\n')
+        
         response = s.recv(1024)
+        time.sleep(3)
+        if response:
+            pass
         print "[Banner Information]\n%s" % response
 
 def parseArgs():
