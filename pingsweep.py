@@ -93,8 +93,15 @@ class IP():
 		return iplist
 
 def main():
+	r00t = root()
+	if not r00t:
+		print "[+] Getting r00t privilege"
+		os.system("sudo python pingsweep.py")
+	else:
+		app = IP()
 
-	app = IP()
+def root():
+	return True if os.getuid() == 0 else False
 
 if __name__ == '__main__':
 	from sys import platform
@@ -107,8 +114,4 @@ if __name__ == '__main__':
 '''
 to do
 =====
-check for root permission
-and if not root
-ask to execute itself with sudo
-
-os.system('sudo python pingsweep.py')'''
+add percentage done for scanning'''
