@@ -31,6 +31,12 @@ class ip():
         self.multithread(self.ipaddr,self.portrange)
         
     def initialize_variable(self):
+
+        self.verbose = False
+        # This switch is to be used when the port number is defined. 
+        # to display if the designated port is closed or not. 
+
+
         print banner
         # This function is for initializing the necessary command arguments and automate default values when one is empty
         # For target argument, the default value is 'Localhost' ('127.0.0.1')
@@ -42,16 +48,22 @@ class ip():
             if str(option.target).isdigit():
                 self.ipaddr = option.target
             elif option.target[0].isalpha():
-                self.ipaddr = self.resolve(option.target)
+                addr = (option.target)
+                if 'http://' in addr: addr = addr.strip('http://')
+                self.ipaddr = self.resolve(addr)
 
         elif not option.target:
             print("\n[!] --target argument is not supplied, default value (localhost) is taken")
             self.ipaddr = '127.0.0.1'
 
         if option.portrange:
-            self.highrange = int(option.portrange.split('-')[1])
-            self.lowrange = int(option.portrange.split('-')[0])
-            self.portrange = [i for i in range(self.lowrange,(self.highrange+1))]
+            if '-' in option.portrange:
+                self.highrange = int(option.portrange.split('-')[1])
+                self.lowrange = int(option.portrange.split('-')[0])
+                self.portrange = [i for i in range(self.lowrange,(self.highrange+1))]
+            else:
+                self.portrange = [option.portrange]
+                self.verbose = True
 
         elif not option.portrange:
             print("[!] --portrange argument is not supplied, default value (20-1024) is taken\n")
@@ -70,20 +82,24 @@ class ip():
             print(bcolors.WARNING+"[!] Error resolving website to ip, please get ip address manually"+bcolors.ENDC)
             exit()
         else:
-            print((bcolors.OKBLUE+"[+] %s = %s"+bcolors.ENDC) % (host, ip))
+            #print((bcolors.OKBLUE+"[+] %s = %s"+bcolors.ENDC) % (host, ip))
+            print("{}[+] {} = {}".format(bcolors.OKBLUE,host,ip,bcolors.ENDC))
             return ip
 
     def scan(self,ipaddr,port):
         # Accepts ipaddress parameter, and port to scan is accepted as port(type=int)
         # Only prints when the port is OPEN
         # Or set your own error message to display with "else" code block
-
+        #print("[.] Scanning %s : %s" % (ipaddr,port))
         s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         status = s.connect_ex((ipaddr,port))
         if (status == 0):
             print("[+] =[\033[91m%s\033[0m]= Port Open"  % port)
         else:
-            pass
+            if self.verbose:
+                print("{}[+]=[{}]= Port closed{}".format(bcolors.FAIL, port, bcolors.ENDC))
+            elif not self.verbose:
+                pass
 
     def online(self,ip):
         """ Check if target is online using nmap -sP probe """
@@ -107,12 +123,12 @@ class ip():
             # Check if the target is online or offline first.
             if self.online(ipaddr):
                 print("[~] Target : "+bcolors.HEADER+"%s"%ipaddr+bcolors.ENDC)
+                if len(ports) > 1:
+                    for i in ports:
+                        t = threading.Thread(target=self.scan,args=(ipaddr,int(i),)).start()
+                else:
+                    t = threading.Thread(target=self.scan,args=(ipaddr,int(ports[0]))).start()
 
-                threads = []
-                for i in ports:
-                    t = threading.Thread(target=self.scan,args=(ipaddr,i,))
-                    threads.append(t)
-                    t.start()
                 #self.bannergrab(ipaddr,80)
 
             elif not self.online(ipaddr):
