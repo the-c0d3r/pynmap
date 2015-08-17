@@ -45,7 +45,7 @@ class ip():
         # Generate a list and assign it to self.portrange
 
         if option.target:
-            if str(option.target).isdigit():
+            if option.target[0].isdigit():
                 self.ipaddr = option.target
             elif option.target[0].isalpha():
                 addr = (option.target)
