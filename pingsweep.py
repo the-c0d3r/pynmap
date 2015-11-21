@@ -64,7 +64,6 @@ def scanPing(q):
     try:
         queueLock.acquire()
         ip = q.get()
-        #print "[+] Scanning : %s" % ip
         queueLock.release()
         nm = nmap.PortScanner()
         nm.scan(hosts=ip, arguments='-sP')
@@ -91,7 +90,9 @@ def scanOS(q):
         osname = nm[ip]["osmatch"][0]["name"]
         accuracy = nm[ip]["osmatch"][0]["accuracy"]
     except KeyError:
-        return
+        queueLock.acquire()
+        print str("[!] "+bcolors.OKBLUE+"%s"+bcolors.ENDC+" : "+ bcolors.WARNING + "No Response"+ bcolors.ENDC) % (ip)
+        queueLock.release()
     except KeyboardInterrupt:
         print "\n[+] Program Terminated!"
         exit()
