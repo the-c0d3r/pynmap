@@ -7,6 +7,8 @@ Nmap Scanner uses 27 seconds to pingsweep from 192.168.0.1-255. But this script,
 
 ![image of result](http://i.imgur.com/Im87Hj0.png)
 
+![image of result](http://i.imgur.com/WZoEJTL.png)
+
 Requirement
 ===========
 1. Nmap module
