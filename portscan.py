@@ -94,7 +94,8 @@ class ip():
         s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         status = s.connect_ex((ipaddr,port))
         if (status == 0):
-            print("[+] =[\033[91m%s\033[0m]= Port Open"  % port)
+            # print("[+] =[\033[91m%s\033[0m]= Port Open"  % port)
+            print("[+] =[\033[91m{:^6}\033[0m]= Port Open".format(port))
         else:
             if self.verbose:
                 print("{}[+]=[{}]= Port closed{}".format(bcolors.FAIL, port, bcolors.ENDC))
