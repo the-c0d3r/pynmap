@@ -43,10 +43,11 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 class scanThread(threading.Thread):
     """
     This is the main control thread
-    Which calls 2 functions 
+    Which calls 2 functions
     scanPing & scanOS
     """
     def __init__(self,q,scan_type):
@@ -59,6 +60,7 @@ class scanThread(threading.Thread):
             scanPing(self.q)
         elif self.scan_type == "os":
             scanOS(self.q)
+
 
 def scanPing(q):
     try:
@@ -76,7 +78,7 @@ def scanPing(q):
         if result == 'up':
             queueLock.acquire()
             alive_ipaddress.append(str(ip))
-            print str("[+] "+bcolors.OKBLUE+"%s"+bcolors.ENDC) % (ip)
+            print("[+] "+bcolors.OKBLUE+ip+bcolors.ENDC)
             queueLock.release()
 
 def scanOS(q):
@@ -91,18 +93,18 @@ def scanOS(q):
         accuracy = nm[ip]["osmatch"][0]["accuracy"]
     except KeyError:
         queueLock.acquire()
-        print str("[!] "+bcolors.OKBLUE+"%s"+bcolors.ENDC+" : "+ bcolors.WARNING + "No Response"+ bcolors.ENDC) % (ip)
+        print("[!] " + bcolors.OKBLUE + ip + bcolors.ENDC+ " : "+ bcolors.WARNING + "No Response"+ bcolors.ENDC)
         queueLock.release()
     except KeyboardInterrupt:
-        print "\n[+] Program Terminated!"
+        print("\n[+] Program Terminated!")
         exit()
     except nmap.PortScannerError:
         pass
     else:
         if osname:
             queueLock.acquire()
-            print str("[+] "+bcolors.OKBLUE+"%s"+bcolors.ENDC+" : "+ bcolors.OKGREEN + \
-                "%s [%s%%]"+ bcolors.ENDC) % (ip, osname,accuracy)#, nm[ip].vendor()) "%s" + bcolors.ENDC
+            print ("[+] "+bcolors.OKBLUE+ip+bcolors.ENDC+" : "+ bcolors.OKGREEN + \
+                osname +  "[" + accuracy + "%%]"+ bcolors.ENDC) #, nm[ip].vendor()) "%s" + bcolors.ENDC
             queueLock.release()
 
 def getlocalip():
@@ -110,14 +112,18 @@ def getlocalip():
     This function will return the Local IP Address of the wlan0 interface
     Please change ifname to 'eth0' or whatever your interface name is, if it's not 'wlan0'
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        if 'ifname' not in vars(): # Check if the variable ifname is already defined
-            ifname = 'wlan0'
-        return socket.inet_ntoa(fcntl.ioctl(s.fileno(),0x8915,struct.pack('256s',ifname[:15]))[20:24])
-    except IOError:
-        print "{}[!] Error, unable to detect local ip address.\n[!] Check your connection to network{}".format(bcolors.FAIL,bcolors.ENDC)
-        exit()
+    if 'nix' in platform:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            if 'ifname' not in vars(): # Check if the variable ifname is already defined
+                ifname = 'wlan0'
+            return socket.inet_ntoa(fcntl.ioctl(s.fileno(),0x8915,struct.pack('256s',ifname[:15]))[20:24])
+        except IOError:
+            print("{}[!] Error, unable to detect local ip address.\n[!] Check your connection to network{}"
+                   .format(bcolors.FAIL,bcolors.ENDC))
+            exit()
+    elif 'darwin' in platform:
+        return [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
 
 def generateipaddress(ip):
     ''' Generate IP Address for scanning
@@ -160,9 +166,9 @@ def pingScan():
     for thread in threads:
         thread.join()
 
-    print "\n[+] Alive ip addresses : %s" % len(alive_ipaddress)
+    print("\n[+] Alive ip addresses : %s" % len(alive_ipaddress))
     endtime = time.time()
-    print "[!] Scan Done in : %.2f seconds" % float(endtime-starttime)
+    print("[!] Scan Done in : %.2f seconds" % float(endtime-starttime))
 
 def osScan():
     """
@@ -195,22 +201,22 @@ def osScan():
         thread.join()
 
     endtime = time.time()
-    print "[!] Scan Done in : %.2f seconds" % float(endtime-starttime)
+    print("[!] Scan Done in : %.2f seconds" % float(endtime-starttime))
 
 def main():
     try:
         fpath = os.path.realpath(__file__)
         r00t = root()
         if not r00t:
-            print "[+] Getting {}r00t{} privilege".format(bcolors.FAIL,bcolors.ENDC)
+            print("[+] Getting {}r00t{} privilege".format(bcolors.FAIL,bcolors.ENDC))
             os.system("sudo python %s" % fpath)
             exit()
 
         pingScan()
 
         if len(alive_ipaddress) >= 2:
-            print "\n[+] Press enter to go to next phase of the scan"
-            print "[+] OS Detection (Might take time) --- Ctrl + C to exit"
+            print("\n[+] Press enter to go to next phase of the scan")
+            print("[+] OS Detection (Might take time) --- Ctrl + C to exit")
             response = raw_input("> ")
             if response == "":
                 osScan()
@@ -218,8 +224,8 @@ def main():
                 exit()
 
     except KeyboardInterrupt:
-        print "\n[+] Ctrl + C Detected!"
-        print "[+] Terminating..."
+        print("\n[+] Ctrl + C Detected!")
+        print("[+] Terminating...")
         exit()
 
 def root():
@@ -227,7 +233,7 @@ def root():
 
 if __name__ == '__main__':
     from sys import platform
-    if 'linux' not in platform:
+    if 'linux' not in platform and 'darwin' not in platform:
         print "[!] Sorry, Only " + bcolors.OKGREEN + " Linux operation system" + bcolors.ENDC +" is supported"
     else:
         main()
