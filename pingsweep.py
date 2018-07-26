@@ -130,35 +130,50 @@ def generateipaddress(ip='127.0.0.0', subnet='24'):
 
     """
 
-    Generate IP addresses for scanning
+    Generate IP addresses corresponding to subnet for scanning
 
-    :returns: list(IPv4Address(u'127.0.0.0'), IPv4Address(u'127.0.0.1'), ...)
+    :returns: list(str)
 
     E.x.
 
     >> generateipaddress('192.168.0.0')
-        [IPv4Address(u'192.168.0.0'), IPv4Address(u'192.168.0.1'), ..., IPv4Address(u'192.168.0.255')]
+        ['192.168.0.0', '192.168.0.1', ..., '192.168.0.255']
 
     >> generateipaddress('localhost', 16)
-        [IPv4Address(u'127.0.0.0'), IPv4Address(u'127.0.0.1'), ..., IPv4Address(u'127.0.255.255')]
+        ['127.0.0.0', '127.0.0.1', ..., '127.0.255.255']
 
     """
 
-    # Input validation
     # Check for usage of 'localhost' as ip argument
-    # Check if ip endswith 0. Host bit must be set to 0 for IPv4Network to function
-
+    # If True, reassign to octet form
     if ip.lower() == 'localhost':
         ip = '127.0.0.0'
-    elif not ip.endswith('0'):
-        ip = ''.join(ip[:-1] + '0')
 
-    # Format ip and subnet into a string
+    # Read ip octets into a list
+    # Check subnet value
+    # Check if corresponding ip octets are not equal to '0'
+    # If not, split ip into octets
+    # Format string to contain the first three octets and
+    ip_octets = ip.split('.')
+
+    if subnet == '24':
+        if ip.split('.')[-1] != '0':
+            ip = '{}.{}.{}.0'.format(ip_octets[0], ip_octets[1], ip_octets[2])
+
+    elif subnet == '16':
+        if ip.split('.')[-1] and ip.split('.')[-2] != '0':
+            ip = '{}.{}.0.0'.format(ip_octets[0], ip_octets[1])
+
+    elif subnet == '8':
+        if ip.split('.')[-1] and ip.split('.')[-2] and ip.split('.')[-3] != '0':
+            ip = '{}.0.0.0'.format(ip_octets[0])
+
+    # Format ip and subnet into a unicode string
     # Pass string into ipaddress's IPv4Network class.
     # Explicitly convert the class instantiation into a list
+    # Use list comprehension to convert ipaddress objects in strings
     # Return
-
-    return list(ipaddress.IPv4Network(unicode('{}/{}'.format(ip, subnet))))
+    return [str(_) for _ in list(ipaddress.IPv4Network(unicode('{}/{}'.format(ip, subnet))))]
 
 def pingScan():
     """
