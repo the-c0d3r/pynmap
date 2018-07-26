@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import ipaddress
 import nmap
 import threading
 import Queue
@@ -125,17 +126,39 @@ def getlocalip():
     elif 'darwin' in platform:
         return [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
 
-def generateipaddress(ip):
-    ''' Generate IP Address for scanning
-    Returns list'''
-    octets = ip.split('.')
-    # got 4 octets now
-    # get first 3 octets, combine them with '.'
-    # and iterate from 0 to 255 for the last octet
-    first3 = str(octets[0]+"."+octets[1]+"."+octets[2]+".")
-    # get 3 octets and combine them with 1 to 255
-    iplist = [first3+str(i) for i in range(0,256)]
-    return iplist
+def generateipaddress(ip='127.0.0.0', subnet='24'):
+
+    """
+
+    Generate IP addresses for scanning
+
+    :returns: list(IPv4Address(u'127.0.0.0'), IPv4Address(u'127.0.0.1'), ...)
+
+    E.x.
+
+    >> generateipaddress('192.168.0.0')
+        [IPv4Address(u'192.168.0.0'), IPv4Address(u'192.168.0.1'), ..., IPv4Address(u'192.168.0.255')]
+
+    >> generateipaddress('localhost', 16)
+        [IPv4Address(u'127.0.0.0'), IPv4Address(u'127.0.0.1'), ..., IPv4Address(u'127.0.255.255')]
+
+    """
+
+    # Input validation
+    # Check for usage of 'localhost' as ip argument
+    # Check if ip endswith 0. Host bit must be set to 0 for IPv4Network to function
+
+    if ip.lower() == 'localhost':
+        ip = '127.0.0.0'
+    elif not ip.endswith('0'):
+        ip = ''.join(ip[:-1] + '0')
+
+    # Format ip and subnet into a string
+    # Pass string into ipaddress's IPv4Network class.
+    # Explicitly convert the class instantiation into a list
+    # Return
+
+    return list(ipaddress.IPv4Network(unicode('{}/{}'.format(ip, subnet))))
 
 def pingScan():
     """
